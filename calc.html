@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle Calculator</title>
+
+    <!-- Chunky game font (falls back to Impact if offline) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="calc.css">
+</head>
+<body>
+
+    <!-- Effect layers -->
+    <canvas id="fx" aria-hidden="true"></canvas>
+    <div class="screen-flash" id="screenFlash" aria-hidden="true"></div>
+    <div class="surge-vignette" id="surgeVignette" aria-hidden="true"></div>
+
+    <main class="app" id="app">
+
+        <!-- Torches (decor, hidden on small screens) -->
+        <div class="torch torch-left" aria-hidden="true"><i class="flame"></i><i class="flame flame-2"></i><b class="pole"></b></div>
+        <div class="torch torch-right" aria-hidden="true"><i class="flame"></i><i class="flame flame-2"></i><b class="pole"></b></div>
+
+        <section class="calculator" id="calculator">
+
+            <!-- Rivets -->
+            <span class="rivet r-tl" aria-hidden="true"></span>
+            <span class="rivet r-tr" aria-hidden="true"></span>
+            <span class="rivet r-bl" aria-hidden="true"></span>
+            <span class="rivet r-br" aria-hidden="true"></span>
+
+            <!-- Banner -->
+            <header class="banner">
+                <svg class="crown" viewBox="0 0 64 48" aria-hidden="true">
+                    <path d="M6 40 L2 12 L18 24 L32 4 L46 24 L62 12 L58 40 Z" class="crown-body"/>
+                    <rect x="6" y="40" width="52" height="6" rx="2" class="crown-base"/>
+                    <circle cx="32" cy="22" r="4" class="crown-gem"/>
+                    <circle cx="14" cy="30" r="2.5" class="crown-gem2"/>
+                    <circle cx="50" cy="30" r="2.5" class="crown-gem2"/>
+                </svg>
+                <div class="banner-text">
+                    <h1>Battle Calculator</h1>
+                    <p>Count your loot, chief!</p>
+                </div>
+                <button type="button" class="sound-toggle" id="soundToggle" aria-pressed="true" aria-label="Toggle sound">🔊</button>
+            </header>
+
+            <!-- Parchment display -->
+            <div class="display" id="display">
+                <div class="display-previous" id="previousLine" aria-hidden="true"></div>
+                <div class="display-current" id="currentLine" role="status" aria-live="polite">0</div>
+            </div>
+
+            <!-- Keypad -->
+            <div class="keys" id="keys">
+                <button type="button" class="key key-fn"  data-action="clear"    data-keys="Escape|Delete" aria-label="All clear">AC</button>
+                <button type="button" class="key key-fn"  data-action="toggle"   data-keys="F9"            aria-label="Toggle positive or negative">±</button>
+                <button type="button" class="key key-fn"  data-action="percent"  data-keys="%"             aria-label="Percent">%</button>
+                <button type="button" class="key key-op"  data-action="operator" data-value="÷" data-keys="/|÷" aria-label="Divide">÷</button>
+
+                <button type="button" class="key" data-action="digit" data-value="7" data-keys="7">7</button>
+                <button type="button" class="key" data-action="digit" data-value="8" data-keys="8">8</button>
+                <button type="button" class="key" data-action="digit" data-value="9" data-keys="9">9</button>
+                <button type="button" class="key key-op" data-action="operator" data-value="×" data-keys="*|x|X|×" aria-label="Multiply">×</button>
+
+                <button type="button" class="key" data-action="digit" data-value="4" data-keys="4">4</button>
+                <button type="button" class="key" data-action="digit" data-value="5" data-keys="5">5</button>
+                <button type="button" class="key" data-action="digit" data-value="6" data-keys="6">6</button>
+                <button type="button" class="key key-op" data-action="operator" data-value="-" data-keys="-" aria-label="Subtract">−</button>
+
+                <button type="button" class="key" data-action="digit" data-value="1" data-keys="1">1</button>
+                <button type="button" class="key" data-action="digit" data-value="2" data-keys="2">2</button>
+                <button type="button" class="key" data-action="digit" data-value="3" data-keys="3">3</button>
+                <button type="button" class="key key-op" data-action="operator" data-value="+" data-keys="+" aria-label="Add">+</button>
+
+                <button type="button" class="key" data-action="digit"     data-value="0" data-keys="0">0</button>
+                <button type="button" class="key" data-action="decimal"   data-keys=".|," aria-label="Decimal point">.</button>
+                <button type="button" class="key key-fn" data-action="backspace" data-keys="Backspace" aria-label="Delete last digit">⌫</button>
+                <button type="button" class="key key-equals" data-action="equals" data-keys="Enter|=" aria-label="Equals">=</button>
+            </div>
+
+            <!-- ★ SPECIAL BUTTON: Elixir Surge (doubles the result) ★ -->
+            <button type="button" class="surge" id="surgeBtn" aria-label="Elixir Surge: calculates and doubles the result (shortcut: S)">
+                <span class="surge-bubbles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                <svg class="flask" viewBox="0 0 64 64" aria-hidden="true">
+                    <defs>
+                        <clipPath id="flaskClip">
+                            <path d="M25 8h14v15l14 25a8 8 0 0 1-7 12H18a8 8 0 0 1-7-12l14-25z"/>
+                        </clipPath>
+                        <linearGradient id="elixir" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#e3a8ff"/>
+                            <stop offset="1" stop-color="#7a22e8"/>
+                        </linearGradient>
+                    </defs>
+                    <g clip-path="url(#flaskClip)">
+                        <rect width="64" height="64" fill="rgba(255,255,255,.16)"/>
+                        <g class="liquid"><path d="M-16 36 q8-6 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 V72 H-16z" fill="url(#elixir)"/></g>
+                        <ellipse cx="24" cy="44" rx="3" ry="7" fill="rgba(255,255,255,.35)" transform="rotate(20 24 44)"/>
+                    </g>
+                    <path d="M25 8h14v15l14 25a8 8 0 0 1-7 12H18a8 8 0 0 1-7-12l14-25z" class="flask-outline"/>
+                    <rect x="22" y="2" width="20" height="8" rx="2.5" class="flask-cork"/>
+                </svg>
+                <span class="surge-label"><b>Elixir Surge</b><small>Doubles your result</small></span>
+                <span class="surge-shine" aria-hidden="true"></span>
+            </button>
+        </section>
+    </main>
+
+    <script src="calc.js"></script>
+</body>
+</html>
